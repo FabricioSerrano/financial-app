@@ -1,0 +1,59 @@
+[project]
+name = "financial-app"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "FabrícioSerrano",email = "serranobraga@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13, <4.0"
+dependencies = [
+    "fastapi (>=0.118.0,<0.119.0)",
+    "fastapi[standard] (>=0.118.0,<0.119.0)",
+    "pydantic-settings (>=2.11.0,<3.0.0)",
+    "pyjwt (>=2.10.1,<3.0.0)",
+    "sqlalchemy (>=2.0.43,<3.0.0)",
+    "alembic (>=1.16.5,<2.0.0)",
+    "pwdlib[argon2] (>=0.2.1,<0.3.0)"
+]
+
+[tool.poetry]
+packages = [{include = "*", from = "financial_app"}]
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.13.3"
+taskipy = "^1.14.1"
+factory-boy = "^3.3.3"
+pytest = "^8.4.2"
+pytest-cov = "^7.0.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 79
+extend-exclude = ['migrations']
+
+[tool.ruff.lint]
+preview = true
+select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = '-p no:warnings'
+
+[tool.taskipy.tasks]
+dev = 'fastapi dev financial_app/main.py'
+
+pre_test = 'task lint'
+test = 'pytest -s --cov="financial_app/" -vv'
+post_test = 'coverage html'
+
+lint = 'ruff check . && ruff check . --diff'
+format = 'ruff check . --fix && ruff format .'

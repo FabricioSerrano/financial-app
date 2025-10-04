@@ -1,0 +1,43 @@
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  setup-dependencies:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.13.7
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.13.7"
+
+      - name: Install dependencies
+        run: |
+          sudo apt install pipx
+          pipx install poetry
+          poetry install
+          
+
+      - name: Lint
+        run: |
+          eval $(poetry env activate)
+          task lint
+        
+      - name: Test
+        run: |
+          eval $(poetry env activate)
+          task test
+    
