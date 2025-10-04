@@ -42,3 +42,10 @@ def create_user(session: T_Session, user_schema: UserSchema) -> UserPublic:
 @router.delete('/{user_id}', status_code=HTTPStatus.OK)
 def delete_user(session: T_Session, user_id: str) -> Message:
     return repositories.delete_user(session, user_id)
+
+
+@router.put('/{user_id}', status_code=HTTPStatus.OK)
+def update_user(
+    session: T_Session, user_id: str, user_schema: UserSchema
+) -> UserPublic:
+    return repositories.update_user(session, user_id, user_schema)

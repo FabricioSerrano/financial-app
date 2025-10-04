@@ -178,3 +178,64 @@ def test_delete_inexistend_user(client: TestClient):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json()['detail'] == 'User not found'
+
+
+def test_update_user(client: TestClient, user: User):
+    response = client.put(
+        f'/users/{str(user.id)}',
+        json={
+            'name': 'Different Name',
+            'username': 'different.username',
+            'email': 'different@email.com',
+            'password': 'different-password',
+            'role': 'user',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'id': str(user.id),
+        'username': 'different.username',
+        'email': 'different@email.com',
+        'role': 'user',
+    }
+
+
+def test_delete_unexistent_user(client: TestClient):
+    wrong_uuid = str(uuid4())
+    response = client.put(
+        f'/users/{wrong_uuid}',
+        json={
+            'name': 'Different Name',
+            'username': 'different.username',
+            'email': 'different@email.com',
+            'password': 'different-password',
+            'role': 'user',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()['detail'] == 'User not found'
+
+
+def test_delete_user_without_fields(client: TestClient, user: User):
+    response = client.put(f'/users/{str(user.id)}')
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+def test_delete_user_with_wrong_uuid_format(client: TestClient):
+    wrong_uuid = 'wrong.uuid.format'
+    response = client.put(
+        f'/users/{wrong_uuid}',
+        json={
+            'name': 'Different Name',
+            'username': 'different.username',
+            'email': 'different@email.com',
+            'password': 'different-password',
+            'role': 'user',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json()['detail'] == 'User Id is not valid'

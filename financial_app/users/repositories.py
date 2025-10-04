@@ -94,3 +94,25 @@ def delete_user(session: Session, user_uuid: str) -> Message:
     session.commit()
 
     return {'message': 'User successfuly deleted'}
+
+
+def update_user(
+    session: Session, user_id: str, user_schema: UserSchema
+) -> UserPublic:
+    converted_uuid = validate_uuid(user_id)
+
+    db_user = session.scalar(select(User).where(User.id == converted_uuid))
+
+    if db_user is None:
+        raise UserNotFound
+
+    db_user.email = user_schema.email
+    db_user.username = user_schema.username
+    db_user.password = get_password_hash(user_schema.password)
+    db_user.role = user_schema.role
+
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+
+    return db_user
