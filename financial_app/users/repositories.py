@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select
@@ -14,6 +15,19 @@ def get_all_users(session: Session, limit: int, offset: int) -> UserList:
     users = session.scalars(select(User).limit(limit).offset(offset))
 
     return {'users': users}
+
+
+def get_user_by_id(session: Session, user_uuid: str) -> UserPublic:
+    converted_uuid = UUID(user_uuid)
+
+    user = session.scalar(select(User).where(User.id == converted_uuid))
+
+    if user is None:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
+        )
+
+    return user
 
 
 def create_user(session: Session, user_schema: UserSchema) -> UserPublic:

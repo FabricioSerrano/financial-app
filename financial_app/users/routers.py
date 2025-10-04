@@ -21,6 +21,11 @@ def get_all_users(
     return repositories.get_all_users(session, limit, offset)
 
 
+@router.get('/{user_uuid}', status_code=HTTPStatus.OK)
+def get_user_by_id(session: T_Session, user_uuid: str) -> UserPublic:
+    return repositories.get_user_by_id(session, user_uuid)
+
+
 @router.post('/', status_code=HTTPStatus.CREATED)
 def create_user(session: T_Session, user_schema: UserSchema) -> UserPublic:
     return repositories.create_user(session, user_schema)

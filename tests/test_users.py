@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import uuid4
 
 from fastapi.testclient import TestClient
 
@@ -103,3 +104,24 @@ def test_get_all_users_without_users(client: TestClient):
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'users': []}
+
+
+def test_get_user_by_id(client: TestClient, user: User):
+    response = client.get(f'/users/{str(user.id)}')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'id': str(user.id),
+        'username': user.username,
+        'email': user.email,
+        'role': user.role,
+    }
+
+
+def test_get_user_by_id_with_wrong_id(client: TestClient):
+    wrong_uuid = str(uuid4())
+
+    response = client.get(f'/users/{wrong_uuid}')
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()['detail'] == 'User not found'
