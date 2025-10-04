@@ -28,7 +28,7 @@ jobs:
         run: |
           sudo apt install pipx
           pipx install poetry
-          poetry init
+          poetry install
           eval $(poetry env activate)
 
       - name: Lint
