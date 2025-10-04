@@ -107,7 +107,7 @@ def test_get_all_users_without_users(client: TestClient):
 
 
 def test_get_user_by_id(client: TestClient, user: User):
-    response = client.get(f'/users/{str(user.id)}')
+    response = client.get('/users', params={'user_id': str(user.id)})
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
@@ -121,7 +121,37 @@ def test_get_user_by_id(client: TestClient, user: User):
 def test_get_user_by_id_with_wrong_id(client: TestClient):
     wrong_uuid = str(uuid4())
 
-    response = client.get(f'/users/{wrong_uuid}')
+    response = client.get('/users', params={'user_id': wrong_uuid})
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json()['detail'] == 'User not found'
+
+
+def test_get_user_by_username(client: TestClient, user: User):
+    response = client.get('/users', params={'username': user.username})
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'id': str(user.id),
+        'username': user.username,
+        'email': user.email,
+        'role': user.role,
+    }
+
+
+def test_get_user_by_username_with_wrong_username(client: TestClient):
+    wrong_username = 'some.wrong.username'
+
+    response = client.get('/users', params={'username': wrong_username})
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()['detail'] == 'User not found'
+
+
+def test_get_user_by_id_with_invalid_uuid(client: TestClient):
+    wrong_uuid = 'invalid.uuid'
+
+    response = client.get('/users', params={'user_id': wrong_uuid})
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json()['detail'] == 'User Id is not valid'

@@ -1,13 +1,17 @@
-from http import HTTPStatus
 from uuid import UUID
 
-from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from financial_app.common.security import get_password_hash
 
 from .models import User
+from .responses import (
+    EmailAlreadyExists,
+    InvalidUserId,
+    UsernameAlreadyExists,
+    UserNotFound,
+)
 from .schemas import UserList, UserPublic, UserSchema
 
 
@@ -18,16 +22,29 @@ def get_all_users(session: Session, limit: int, offset: int) -> UserList:
 
 
 def get_user_by_id(session: Session, user_uuid: str) -> UserPublic:
-    converted_uuid = UUID(user_uuid)
+    converted_uuid = None
 
-    user = session.scalar(select(User).where(User.id == converted_uuid))
+    try:
+        converted_uuid = UUID(user_uuid)
 
-    if user is None:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
-        )
+    except ValueError:
+        raise InvalidUserId()
 
-    return user
+    db_user = session.scalar(select(User).where(User.id == converted_uuid))
+
+    if db_user is None:
+        raise UserNotFound()
+
+    return db_user
+
+
+def get_user_by_username(session: Session, username: str) -> UserPublic:
+    db_user = session.scalar(select(User).where(User.username == username))
+
+    if db_user is None:
+        raise UserNotFound()
+
+    return db_user
 
 
 def create_user(session: Session, user_schema: UserSchema) -> UserPublic:
@@ -42,13 +59,9 @@ def create_user(session: Session, user_schema: UserSchema) -> UserPublic:
 
     if db_user is not None:
         if db_user.username == user_schema.username:
-            raise HTTPException(
-                HTTPStatus.BAD_REQUEST, detail='Username already exists'
-            )
+            raise UsernameAlreadyExists()
 
-        raise HTTPException(
-            HTTPStatus.BAD_REQUEST, detail='Email already exists'
-        )
+        raise EmailAlreadyExists()
 
     db_user = User(
         username=user_schema.username,

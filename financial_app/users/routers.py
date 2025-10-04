@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Annotated
+from typing import Annotated, Union
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -15,15 +15,22 @@ T_Session = Annotated[Session, Depends(get_session)]
 
 
 @router.get('/', status_code=HTTPStatus.OK)
-def get_all_users(
-    session: T_Session, limit: int = 10, offset: int = 0
-) -> UserList:
+def get_users(
+    session: T_Session,
+    user_id: str = None,
+    username: str = None,
+    limit: int = 10,
+    offset: int = 0,
+) -> Union[UserList, UserPublic]:
+    """Get all users or especific user by username or user id"""
+
+    if user_id is not None:
+        return repositories.get_user_by_id(session, user_id)
+
+    if username is not None:
+        return repositories.get_user_by_username(session, username)
+
     return repositories.get_all_users(session, limit, offset)
-
-
-@router.get('/{user_uuid}', status_code=HTTPStatus.OK)
-def get_user_by_id(session: T_Session, user_uuid: str) -> UserPublic:
-    return repositories.get_user_by_id(session, user_uuid)
 
 
 @router.post('/', status_code=HTTPStatus.CREATED)
