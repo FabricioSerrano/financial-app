@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from financial_app.common.schemas import Message
 from financial_app.common.security import get_password_hash
 
 from .models import User
@@ -15,6 +16,15 @@ from .responses import (
 from .schemas import UserList, UserPublic, UserSchema
 
 
+def validate_uuid(uuid: str) -> UUID:
+    try:
+        converted_uuid = UUID(uuid)
+        return converted_uuid
+
+    except ValueError:
+        raise InvalidUserId()
+
+
 def get_all_users(session: Session, limit: int, offset: int) -> UserList:
     users = session.scalars(select(User).limit(limit).offset(offset))
 
@@ -22,13 +32,7 @@ def get_all_users(session: Session, limit: int, offset: int) -> UserList:
 
 
 def get_user_by_id(session: Session, user_uuid: str) -> UserPublic:
-    converted_uuid = None
-
-    try:
-        converted_uuid = UUID(user_uuid)
-
-    except ValueError:
-        raise InvalidUserId()
+    converted_uuid = validate_uuid(user_uuid)
 
     db_user = session.scalar(select(User).where(User.id == converted_uuid))
 
@@ -76,3 +80,17 @@ def create_user(session: Session, user_schema: UserSchema) -> UserPublic:
     session.refresh(db_user)
 
     return db_user
+
+
+def delete_user(session: Session, user_uuid: str) -> Message:
+    converted_uuid = validate_uuid(user_uuid)
+
+    db_user = session.scalar(select(User).where(User.id == converted_uuid))
+
+    if db_user is None:
+        raise UserNotFound()
+
+    session.delete(db_user)
+    session.commit()
+
+    return {'message': 'User successfuly deleted'}

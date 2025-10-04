@@ -155,3 +155,26 @@ def test_get_user_by_id_with_invalid_uuid(client: TestClient):
 
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json()['detail'] == 'User Id is not valid'
+
+
+def test_delete_user(client: TestClient, user: User):
+    response = client.delete(f'/users/{user.id}')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()['message'] == 'User successfuly deleted'
+
+
+def test_delete_user_with_invalid_id(client: TestClient):
+    response = client.delete('/users/invalid.id')
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json()['detail'] == 'User Id is not valid'
+
+
+def test_delete_inexistend_user(client: TestClient):
+    wrong_uuid = str(uuid4())
+
+    response = client.delete(f'/users/{wrong_uuid}')
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json()['detail'] == 'User not found'

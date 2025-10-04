@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from financial_app.common.database import get_session
+from financial_app.common.schemas import Message
 from financial_app.users import repositories
 
 from .schemas import UserList, UserPublic, UserSchema
@@ -36,3 +37,8 @@ def get_users(
 @router.post('/', status_code=HTTPStatus.CREATED)
 def create_user(session: T_Session, user_schema: UserSchema) -> UserPublic:
     return repositories.create_user(session, user_schema)
+
+
+@router.delete('/{user_id}', status_code=HTTPStatus.OK)
+def delete_user(session: T_Session, user_id: str) -> Message:
+    return repositories.delete_user(session, user_id)
