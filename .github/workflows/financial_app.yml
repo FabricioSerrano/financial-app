@@ -29,13 +29,15 @@ jobs:
           sudo apt install pipx
           pipx install poetry
           poetry install
-          eval $(poetry env activate)
+          
 
       - name: Lint
         run: |
+          eval $(poetry env activate)
           task lint
         
       - name: Test
         run: |
+          eval $(poetry env activate)
           task test
     
